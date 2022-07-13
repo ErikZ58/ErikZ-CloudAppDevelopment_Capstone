@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 def test(request):
     #template = "test.html"
     context = {
-      fullName: "Erik Zeidler",
-      age: 28,
-      designation: "Software Engineer"
+      'fullName': "Erik Zeidler",
+      'age': 28,
+      'designation': "Software Engineer"
     }
     return render(request, 'djangoapp/test.html' , context)
 

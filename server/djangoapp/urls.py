@@ -10,7 +10,7 @@ urlpatterns = [
     # name the URL
 
     #path for test view
-    path(route='', view=views.test, name='test'),
+    path(route='djangoapp/test', view=views.test, name='test'),
 
     # path for about view
 
