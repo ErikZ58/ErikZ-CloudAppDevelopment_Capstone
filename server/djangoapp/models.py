@@ -1,5 +1,8 @@
 from django.db import models
 from django.utils.timezone import now
+from django.core import serializers
+import uuid
+import json
 
 
 # Create your models here.
@@ -16,7 +19,7 @@ class CarMake(models.Model):
     
     # Create a toString method for object string representation
     def __str__(self):
-        return self.maker_name + " " + self.description
+        return "Name: " + self.maker_name
 
 
 # <HINT> Create a Car Model model `class CarModel(models.Model):`:
@@ -40,15 +43,15 @@ class CarModel(models.Model):
         (COUPE, 'Coupe')]
     
     model_name = models.CharField(null=False, max_length=30, default='X7')
-    dealer_ID = models.IntegerField(default=1)
+    dealer_ID = models.IntegerField(default=1,primary_key=True)
     car_type = models.CharField(null=False,max_length=30, choices=TYPE_CHOICES, default=SEDAN)
     year = models.DateField(null=True)
-    makers = models.ForeignKey(CarMake, on_delete=models.CASCADE)
+    make = models.ForeignKey(CarMake, on_delete=models.CASCADE)
 
     
     # Create a toString method for object string representation
     def __str__(self):
-        return self.model_name + " " + str(self.dealer_ID) + " " + self.car_type + " " + str(self.year)
+        return "Name: " + self.model_name
 
 
 # <HINT> Create a plain Python class `CarDealer` to hold dealer data
