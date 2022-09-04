@@ -1,6 +1,6 @@
 import requests
 import json
-from .models import CarDealer
+from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
 
 
@@ -52,7 +52,7 @@ def get_dealers_from_cf(url, **kwargs):
     return results
 
 
-# Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
+
 # def get_dealer_by_id_from_cf(url, dealerId):
 # - Call get_request() with specified arguments
 # - Parse JSON results into a DealerView object list
@@ -76,7 +76,6 @@ def get_dealer_by_id_from_cf(url, dealerId):
 
     return results
 
-# Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
 # def get_dealer_by_state_from_cf(url, state):
 # - Call get_request() with specified arguments
 # - Parse JSON results into a DealerView object list
@@ -96,6 +95,27 @@ def get_dealer_by_id_from_cf(url, state):
                                    id=dealer_doc["id"], lat=dealer_doc["lat"], long=dealer_doc["long"],
                                    short_name=dealer_doc["short_name"],
                                    st=dealer_doc["st"], zip=dealer_doc["zip"])
+            results.append(dealer_obj)
+
+    return results
+
+# Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
+def get_dealer_reviews_from_cf(url, dealerId):
+    results = []
+    # Call get_request with a URL parameter
+    json_result = get_request(url, dealerID=dealerID)
+    if json_result:
+        # Get the row list in JSON as dealers
+        reviews = json_result["rows"]
+        # For each dealer object
+        for review in reviews:
+            # Get its content in `doc` object
+            review_doc = review["doc"]
+            # Create a CarDealer object with values in `doc` object
+            review_obj = DealerReview(dealership=review_doc["dealership"], name=review_doc["name"], purchase=review_doc["purchase"],
+                                   id=review_doc["id"], review=review_doc["review"], purchase_date=review_doc["purchase_date"],
+                                   car_make=review_doc["car_make"],
+                                   car_model=review_doc["car_model"], car_year=review_doc["car_year"], sentiment=review_doc["sentiment"])
             results.append(dealer_obj)
 
     return results
