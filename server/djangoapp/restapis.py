@@ -11,8 +11,13 @@ def get_request(url, **kwargs):
     print(kwargs)
     print("GET from {} ".format(url))
     try:
-        # Call get method of requests library with URL and parameters
-        response = requests.get(url, headers={'Content-Type': 'application/json'},
+        if api_key:
+            # Call get method of requests library with URL and parameters
+            response = requests.get(url, headers={'Content-Type': 'application/json'},
+                                    params=kwargs,
+                                    auth=HTTPBasicAuth('apikey', api_key))
+        else:
+            response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
     except:
         # If any error occurs
@@ -79,7 +84,7 @@ def get_dealer_by_id_from_cf(url, dealerId):
 # def get_dealer_by_state_from_cf(url, state):
 # - Call get_request() with specified arguments
 # - Parse JSON results into a DealerView object list
-def get_dealer_by_id_from_cf(url, state):
+def get_dealer_by_state_from_cf(url, state):
     results = []
     # Call get_request with a URL parameter
     json_result = get_request(url, state=state)
@@ -116,6 +121,7 @@ def get_dealer_reviews_from_cf(url, dealerId):
                                    id=review_doc["id"], review=review_doc["review"], purchase_date=review_doc["purchase_date"],
                                    car_make=review_doc["car_make"],
                                    car_model=review_doc["car_model"], car_year=review_doc["car_year"], sentiment=review_doc["sentiment"])
+            review_obj.sentiment = analyze_review_sentiments(review_obj.review)
             results.append(dealer_obj)
 
     return results
@@ -125,6 +131,14 @@ def get_dealer_reviews_from_cf(url, dealerId):
 # def analyze_review_sentiments(text):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
-
+def analyze_review_sentiments(text):
+    api_key = 'ABuaTZsvsNKJKhdGAg3zbk9KX9ZbAhi8GhF_ooCt9x3w'
+    params = dict()
+    params["text"] = kwargs["text"]
+    params["version"] = kwargs["version"]
+    params["features"] = kwargs["features"]
+    params["return_analyzed_text"] = kwargs["return_analyzed_text"]
+    response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
+                                    auth=HTTPBasicAuth('apikey', api_key))
 
 
