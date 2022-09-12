@@ -1,5 +1,8 @@
 import requests
 import json
+from ibm_watson import NaturalLanguageUnderstandingV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from ibm_watson.natural_language_understanding_v1 import Features, SentimentOptions
 from .models import CarDealer, DealerReview
 from requests.auth import HTTPBasicAuth
 
@@ -30,6 +33,18 @@ def get_request(url, **kwargs):
 
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
+def post_request(url, json_payload, **kwargs):
+    try:
+        request = requests.post(url, json=json_payload, params=kwargs)
+    except:
+        print("Network exception occurred")
+
+    status_code = request.status_code
+    print(request.request.body)
+    print("With status {} ".format(status_code))
+    json_data = json.loads(request.text)
+
+    return request
 
 
 # Create a get_dealers_from_cf method to get dealers from a cloud function
@@ -131,14 +146,19 @@ def get_dealer_reviews_from_cf(url, dealerId):
 # def analyze_review_sentiments(text):
 # - Call get_request() with specified arguments
 # - Get the returned sentiment label such as Positive or Negative
-def analyze_review_sentiments(text):
-    api_key = 'ABuaTZsvsNKJKhdGAg3zbk9KX9ZbAhi8GhF_ooCt9x3w'
-    params = dict()
-    params["text"] = kwargs["text"]
-    params["version"] = kwargs["version"]
-    params["features"] = kwargs["features"]
-    params["return_analyzed_text"] = kwargs["return_analyzed_text"]
-    response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
-                                    auth=HTTPBasicAuth('apikey', api_key))
+def analyze_review_sentiments(review):
+    authenticator = IAMAuthenticator('ABuaTZsvsNKJKhdGAg3zbk9KX9ZbAhi8GhF_ooCt9x3w')
+    nlu = NaturalLanguageUnderstandingV1(
+        version='2022-04-07', 
+        authenticator=authenticator
+        )
+    nlu.set_service_url('https://api.eu-gb.natural-language-understanding.watson.cloud.ibm.com/instances/d3fa661a-984c-4ba0-995d-ec75c1f5924e')
+
+    response = nlu.analyze(text = review, 
+    features=Features(sentiment=SentimentOptions(document = True))).get_result()
+
+    #print(json.dumps(response['sentiment']['document']['label'], indent=2))
+
+    return response['sentiment']['document']['label']
 
 

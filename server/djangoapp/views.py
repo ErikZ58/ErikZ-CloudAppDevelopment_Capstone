@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-from .models import CarDealer
-from .restapis import get_dealers_from_cf
+from urllib3 import HTTPResponse
+from .models import CarMake, CarModel, CarDealer, DealerReview
+from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -124,5 +125,50 @@ def get_dealer_details(request, dealer_id):
 
 # Create a `add_review` view to submit a review
 # def add_review(request, dealer_id):
-# ...
+def add_review(request, dealer_id):
+    if request.method == "GET":
+        context = {}
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/dealerships?id={dealer_id}"
+        context['dealerships'] = get_dealers_from_cf(url)
+        context['dealer'] = dealer_id
+        context['cars'] = CarModel.objects.filter(dealership=dealer_id)
+        print(context['cars'])
 
+        return render(request, 'djangoapp/add_review.html', context)
+
+    if request.method == "POST" and request.user.is_authenticated:
+        url_post = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/post_review"
+        context={}
+        review_payload = dict()
+        #review_payload["time"] = datetime.utcnow().isoformat()
+        review_payload["dealership"] = dealer_id
+        review_payload["name"] = request.POST.get('name', "")
+        review_payload["review"] = request.POST.get('review', "")
+        review_payload["purchased"] = request.POST.get('purchased', False)
+        #print(review_payload)
+
+        if review_payload['purchased']:
+            car = CarModel.objects.filter(model_id=int(request.POST.get('car')))[0]
+            review_payload['purchase']= "true"
+            review_payload["purchase_date"] = request.POST.get('purchasedate')
+            review_payload["car_model"] = car.name_model
+            review_payload["car_year"] = car.year.strftime("%Y")
+            review_payload["car_make"] = car.name_make.name_make
+        else: 
+            review_payload['purchase']= 'false'
+            review_payload["purchase_date"] = ''
+            review_payload["car_model"] = ''
+            review_payload["car_year"] = ''
+            review_payload["car_make"] = ''
+
+        json_payload = json.dumps(review_payload)
+        response = post_request(url_post,json_payload)
+        print(json_payload)
+        messages.success(request, 'Thank you for your review')
+        #return HttpResponse(response)
+        #return render(request, "index.html", context)
+        return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
+    elif request.user.is_authenticated != True:
+        context={}
+        context['error_message'] = "Please sign up first to leave a review!"
+        return render(request, 'djangoapp/registration.html', context)   
