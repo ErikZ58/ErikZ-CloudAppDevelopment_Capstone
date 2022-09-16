@@ -14,12 +14,12 @@ def get_request(url, **kwargs):
     print(kwargs)
     print("GET from {} ".format(url))
     try:
-        if api_key:
+        #if api_key:
             # Call get method of requests library with URL and parameters
-            response = requests.get(url, headers={'Content-Type': 'application/json'},
-                                    params=kwargs,
-                                    auth=HTTPBasicAuth('apikey', api_key))
-        else:
+            #response = requests.get(url, headers={'Content-Type': 'application/json'},
+                                    #params=kwargs,
+                                    #auth=HTTPBasicAuth('apikey', api_key))
+        #else:
             response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
     except:
@@ -57,7 +57,7 @@ def get_dealers_from_cf(url, **kwargs):
     json_result = get_request(url)
     if json_result:
         # Get the row list in JSON as dealers
-        dealers = json_result["rows"]
+        dealers = json_result["doc"]
         # For each dealer object
         for dealer in dealers:
             # Get its content in `doc` object
