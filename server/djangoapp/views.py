@@ -101,7 +101,7 @@ def registration_request(request):
 # Update the `get_dealerships` view to render the index page with a list of dealerships
 def get_dealerships(request):
     if request.method == "GET":
-        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/Eric.Zeidler%40melexis.com_djangoserver-space/actions/capstone/dealerships"
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/dealerships"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
         # Concat all dealer's short name
