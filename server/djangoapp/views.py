@@ -113,7 +113,7 @@ def get_dealerships(request):
 # Create a `get_dealer_details` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
-        url = "https://eu-gb.functions.cloud.ibm.com/api/v1/namespaces/Eric.Zeidler%40melexis.com_djangoserver-space/actions/capstone/get_reviews"
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
         # Get reviews from dealer_ID
         reviews = get_dealer_reviews_from_cf(url, dealer_id)
         # Concat all dealer's short name
@@ -128,7 +128,7 @@ def get_dealer_details(request, dealer_id):
 def add_review(request, dealer_id):
     if request.method == "GET":
         context = {}
-        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/dealerships?id={dealer_id}"
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships?id={dealer_id}"
         context['dealerships'] = get_dealers_from_cf(url)
         context['dealer'] = dealer_id
         context['cars'] = CarModel.objects.filter(dealership=dealer_id)
@@ -137,7 +137,7 @@ def add_review(request, dealer_id):
         return render(request, 'djangoapp/add_review.html', context)
 
     if request.method == "POST" and request.user.is_authenticated:
-        url_post = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/post_review"
+        url_post = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/post_review_new"
         context={}
         review_payload = dict()
         #review_payload["time"] = datetime.utcnow().isoformat()
