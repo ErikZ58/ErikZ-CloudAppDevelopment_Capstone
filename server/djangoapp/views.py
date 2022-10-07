@@ -101,6 +101,7 @@ def registration_request(request):
 # Update the `get_dealerships` view to render the index page with a list of dealerships
 def get_dealerships(request):
     if request.method == "GET":
+        context = {}
         url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
@@ -130,7 +131,7 @@ def get_dealer_details(request, dealer_id):
 def add_review(request, dealer_id):
     if request.method == "GET":
         context = {}
-        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships?id={dealer_id}"
+        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
         context['dealerships'] = get_dealers_from_cf(url)
         context['dealer'] = dealer_id
         context['cars'] = CarModel.objects.filter(dealership=dealer_id)
