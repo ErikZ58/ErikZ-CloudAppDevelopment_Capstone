@@ -11,20 +11,26 @@ from requests.auth import HTTPBasicAuth
 # e.g., response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
 #                                     auth=HTTPBasicAuth('apikey', api_key))
 def get_request(url, **kwargs):
-    print(kwargs)
+    # If argument contain API KEY
+    api_key = kwargs.get("api_key")
     print("GET from {} ".format(url))
     try:
-        #if api_key:
+        if api_key:
+            params = dict()
+            params["text"] = kwargs["text"]
+            params["version"] = kwargs["version"]
+            params["features"] = kwargs["features"]
+            params["return_analyzed_text"] = kwargs["return_analyzed_text"]
+            response = requests.get(url, params=params, headers={'Content-Type': 'application/json'},
+                                    auth=HTTPBasicAuth('apikey', api_key))
+        else:
             # Call get method of requests library with URL and parameters
-            #response = requests.get(url, headers={'Content-Type': 'application/json'},
-                                    #params=kwargs,
-                                    #auth=HTTPBasicAuth('apikey', api_key))
-        #else:
             response = requests.get(url, headers={'Content-Type': 'application/json'},
                                     params=kwargs)
     except:
         # If any error occurs
         print("Network exception occurred")
+
     status_code = response.status_code
     print("With status {} ".format(status_code))
     json_data = json.loads(response.text)
@@ -124,10 +130,14 @@ def get_dealer_by_state_from_cf(url, state):
     return results
 
 # Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
-def get_dealer_reviews_from_cf(url, dealerId):
+def get_dealer_reviews_from_cf(url, **kwargs):
     results = []
-    # Call get_request with a URL parameter
-    json_result = get_request(url, dealerID=dealerID)
+    id = kwargs.get("id")
+    if id:
+        json_result = get_request(url, id=id)
+    else:
+        json_result = get_request(url)
+
     if json_result:
         # Get the row list in JSON as dealers
         reviews = json_result["rows"]
@@ -141,7 +151,7 @@ def get_dealer_reviews_from_cf(url, dealerId):
                                    car_make=review_doc["car_make"],
                                    car_model=review_doc["car_model"], car_year=review_doc["car_year"], sentiment=review_doc["sentiment"])
             review_obj.sentiment = analyze_review_sentiments(review_obj.review)
-            results.append(dealer_obj)
+            results.append(review_obj)
 
     return results
 
