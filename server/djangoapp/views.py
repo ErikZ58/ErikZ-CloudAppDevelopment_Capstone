@@ -116,14 +116,29 @@ def get_dealerships(request):
 # Create a `get_dealer_details` view to render the reviews of a dealer
 def get_dealer_details(request, dealer_id):
     if request.method == "GET":
-        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
+        #url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
         # Get reviews from dealer_ID
-        reviews = get_dealer_reviews_from_cf(url, dealer_id)
+        #reviews = get_dealer_reviews_from_cf(url, dealer_id)
         # Concat all dealer's short name
-        review_list = ' '.join([review.review for review in reviews])
-        sentiment_list = ' '.join(review.sentiment for review in reviews)
+        #review_list = ' '.join([review.review for review in reviews])
+        #sentiment_list = ' '.join(review.sentiment for review in reviews)
         # Return a list of dealer short name
-        return HttpResponse(review_list, sentiment_list)
+        #return HttpResponse(review_list, sentiment_list)
+        
+        if request.method == "GET":
+            context = {}
+            url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
+            print("dealer id:", dealer_id)
+            context['reviews'] = get_dealer_reviews_from_cf(url, dealer_id=dealer_id)
+
+            url2 = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
+            context['dealerships'] = get_dealers_from_cf(url2)
+            #context['full_name'] = current_dealer.full_name
+            context['dealer'] = dealer_id
+            #print(context)
+
+            # Return a list of dealer short name
+            return render(request, 'djangoapp/dealer_details.html', context)
 
 
 # Create a `add_review` view to submit a review

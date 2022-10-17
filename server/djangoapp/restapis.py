@@ -130,17 +130,22 @@ def get_dealer_by_state_from_cf(url, state):
     return results
 
 # Create a get_dealer_reviews_from_cf method to get reviews by dealer id from a cloud function
-def get_dealer_reviews_from_cf(url, **kwargs):
+def get_dealer_reviews_from_cf(url, dealer_id):
     results = []
-    id = kwargs.get("id")
-    if id:
-        json_result = get_request(url, id=id)
+    #id = kwargs.get("id")
+    #print("id:", id)
+    print("dealer id func:", dealer_id)
+    if dealer_id:
+        print("test dealership")
+        json_result = get_request(url, dealership=dealer_id)
+        print(json_result)
     else:
+        print("test wo dealership")
         json_result = get_request(url)
 
     if json_result:
         # Get the row list in JSON as dealers
-        reviews = json_result["rows"]
+        reviews = json_result["body"]["data"]["docs"]
         # For each dealer object
         for review in reviews:
             # Get its content in `doc` object
