@@ -13,13 +13,12 @@ import json
 # - Any other fields you would like to include in car make model
 # - __str__ method to print a car make object
 class CarMake(models.Model):
-    maker_name = models.CharField(null=False, max_length=30, default='BMW')
-    description = models.CharField(null=False, max_length=500)
-    #dob = models.DateField(null=True)
-    
-    # Create a toString method for object string representation
+    name = models.CharField(null=False, max_length=30, default='car make')
+    description = models.CharField(max_length=1000)
+
     def __str__(self):
-        return "Name: " + self.maker_name
+        return "Name: " + self.name + "," + \
+               "Description: " + self.description
 
 
 # <HINT> Create a Car Model model `class CarModel(models.Model):`:
@@ -32,26 +31,27 @@ class CarMake(models.Model):
 # - __str__ method to print a car make object
 class CarModel(models.Model):
     
-    SUV = 'SUV'
     SEDAN = 'Sedan'
-    WAGON = 'Wagon'
-    COUPE = 'Coupe'
-    TYPE_CHOICES = [
-        (SUV, 'SUV'),
+    SUV = 'SUV'
+    WAGON = 'WAGON'
+    SPORTS_CAR = 'Sports car'
+    CAR_MODEL_TYPES = [
         (SEDAN, 'Sedan'),
-        (WAGON, 'Wagon'),
-        (COUPE, 'Coupe')]
-    
-    model_name = models.CharField(null=False, max_length=30, default='X7')
-    dealerID = models.IntegerField(default=1,primary_key=True)
-    car_type = models.CharField(null=False,max_length=30, choices=TYPE_CHOICES, default=SEDAN)
-    year = models.DateField(null=True)
-    make = models.ForeignKey(CarMake, on_delete=models.CASCADE)
+        (SUV, 'SUV'),
+        (WAGON, 'WAGON'),
+        (SPORTS_CAR, 'Sports car')
+    ]
 
+    CarMake = models.ForeignKey(CarMake, on_delete=models.CASCADE)
+    name = models.CharField(null=False, max_length=30, default='car model')
+    id =  models.IntegerField(default=0, primary_key=True)
+    car_model = models.CharField(max_length=10, choices=CAR_MODEL_TYPES, default=SEDAN)
+    car_year = models.DateField(default=now)
     
-    # Create a toString method for object string representation
     def __str__(self):
-        return "Name: " + self.model_name
+        return "Name: " + self.name + "," + \
+               "Model: " + self.car_model
+
 
 
 # <HINT> Create a plain Python class `CarDealer` to hold dealer data
@@ -83,27 +83,17 @@ class CarDealer:
 # <HINT> Create a plain Python class `DealerReview` to hold review data
 class DealerReview:
 
-    def __init__(self, dealership, name, purchase, id, review, purchase_date, car_make, car_model, car_year, sentiment):
-        # Review dealership
+    def __init__(self, dealership, name, purchase, review):
         self.dealership = dealership
-        # review name
         self.name = name
-        # customer purchase
         self.purchase = purchase
-        # review id
-        self.id = id
-        # review
         self.review = review
-        # purchase date reviewer
-        self.purchase_date = purchase_date
-        # review car maker
-        self.car_make = car_make
-        # review car model
-        self.car_model = car_model
-        # review car year
-        self.car_year = car_year
-        # review sentiment
-        self.sentiment = sentiment
+        self.purchase_date = ""
+        self.car_make = ""
+        self.car_model = ""
+        self.car_year = ""
+        self.id = ""
+        self.sentiment= ""
 
     def __str__(self):
-        return "Review: " + self.review
+        return "Dealer Review: " + self.review +"("+ self.sentiment+ ")"

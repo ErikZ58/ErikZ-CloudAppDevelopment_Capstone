@@ -2,9 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
-from urllib3 import HTTPResponse
-from .models import CarMake, CarModel, CarDealer, DealerReview
-from .restapis import get_dealers_from_cf, get_dealer_reviews_from_cf, post_request
+# from .models import related models
+from .models import CarModel, CarDealer, CarMake, CarDealer
+# from .restapis import related methods
+from .restapis import get_request, get_dealers_from_cf, get_dealer_reviews_from_cf, get_dealer_by_id_from_cf, post_request
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from datetime import datetime
@@ -105,37 +106,24 @@ def get_dealerships(request):
         url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
         # Get dealers from the URL
         dealerships = get_dealers_from_cf(url)
-        # Concat all dealer's short name
-        #dealer_names = ' '.join([dealer.short_name for dealer in dealerships])
-        # Return a list of dealer short name
-        #return HttpResponse(dealer_names)
         context["dealership_list"] = dealerships
         return render(request, 'djangoapp/index.html', context)
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
-def get_dealer_details(request, dealer_id):
-    if request.method == "GET":
-        #url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
-        # Get reviews from dealer_ID
-        #reviews = get_dealer_reviews_from_cf(url, dealer_id)
-        # Concat all dealer's short name
-        #review_list = ' '.join([review.review for review in reviews])
-        #sentiment_list = ' '.join(review.sentiment for review in reviews)
-        # Return a list of dealer short name
-        #return HttpResponse(review_list, sentiment_list)
+def get_dealer_details(request, id):
         
         if request.method == "GET":
             context = {}
-            url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
-            print("dealer id:", dealer_id)
-            context['reviews'] = get_dealer_reviews_from_cf(url, dealer_id=dealer_id)
-
-            url2 = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
-            context['dealerships'] = get_dealers_from_cf(url2)
-            #context['full_name'] = current_dealer.full_name
-            context['dealer'] = dealer_id
+            dealer_url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
+            dealer = get_dealer_by_id_from_cf(dealer_url, id=id)
+            context['dealer'] = dealer
             #print(context)
+
+            review_url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_review_new"
+            reviews = get_dealer_reviews_from_cf(review_url, id=id)
+            print(reviews)
+            context['reviews'] = reviews
 
             # Return a list of dealer short name
             return render(request, 'djangoapp/dealer_details.html', context)
@@ -143,50 +131,43 @@ def get_dealer_details(request, dealer_id):
 
 # Create a `add_review` view to submit a review
 # def add_review(request, dealer_id):
-def add_review(request, dealer_id):
-    if request.method == "GET":
-        context = {}
-        url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
-        context['dealerships'] = get_dealers_from_cf(url)
-        context['dealer'] = dealer_id
-        context['cars'] = CarModel.objects.filter(dealership=dealer_id)
-        print(context['cars'])
+def add_review(request, id):
+    context = {}
+    dealer_url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/get_dealerships"
+    dealer = get_dealer_by_id_from_cf(dealer_url, id=id)
+    context["dealer"] = dealer
+    if request.method == 'GET':
+        # Get cars for the dealer
+        cars = CarModel.objects.all()
+        print(cars)
+        context["cars"] = cars
 
         return render(request, 'djangoapp/add_review.html', context)
+    elif request.method == 'POST':
+        if request.user.is_authenticated:
+            username = request.user.username
+            print(request.POST)
+            payload = dict()
+            car_id = request.POST["car"]
+            car = CarModel.objects.get(pk=car_id)
+            payload["time"] = datetime.utcnow().isoformat()
+            payload["name"] = username
+            payload["dealership"] = id
+            payload["id"] = id
+            payload["review"] = request.POST["content"]
+            payload["purchase"] = False
+            if "purchasecheck" in request.POST:
+                if request.POST["purchasecheck"] == 'on':
+                    payload["purchase"] = True
+            payload["purchase_date"] = request.POST["purchasedate"]
+            payload["car_make"] = car.CarMake.name
+            payload["car_model"] = car.name
+            payload["car_year"] = int(car.car_year.strftime("%Y"))
 
-    if request.method == "POST" and request.user.is_authenticated:
-        url_post = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/post_review_new"
-        context={}
-        review_payload = dict()
-        #review_payload["time"] = datetime.utcnow().isoformat()
-        review_payload["dealership"] = dealer_id
-        review_payload["name"] = request.POST.get('name', "")
-        review_payload["review"] = request.POST.get('review', "")
-        review_payload["purchased"] = request.POST.get('purchased', False)
-        #print(review_payload)
+            new_payload = {}
+            new_payload["review"] = payload
+            review_post_url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/Eric.Zeidler%40melexis.com_djangoserver-space/capstone/post_review_new"
+            post_request(review_post_url, new_payload, id=id)
+        return redirect("djangoapp:dealer_details", id=id)
 
-        if review_payload['purchased']:
-            car = CarModel.objects.filter(model_id=int(request.POST.get('car')))[0]
-            review_payload['purchase']= "true"
-            review_payload["purchase_date"] = request.POST.get('purchasedate')
-            review_payload["car_model"] = car.name_model
-            review_payload["car_year"] = car.year.strftime("%Y")
-            review_payload["car_make"] = car.name_make.name_make
-        else: 
-            review_payload['purchase']= 'false'
-            review_payload["purchase_date"] = ''
-            review_payload["car_model"] = ''
-            review_payload["car_year"] = ''
-            review_payload["car_make"] = ''
 
-        json_payload = json.dumps(review_payload)
-        response = post_request(url_post,json_payload)
-        print(json_payload)
-        messages.success(request, 'Thank you for your review')
-        #return HttpResponse(response)
-        #return render(request, "index.html", context)
-        return redirect("djangoapp:dealer_details", dealer_id=dealer_id)
-    elif request.user.is_authenticated != True:
-        context={}
-        context['error_message'] = "Please sign up first to leave a review!"
-        return render(request, 'djangoapp/registration.html', context)   
